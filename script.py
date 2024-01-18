@@ -4,7 +4,6 @@ from Crypto.Cipher import PKCS1_OAEP    #asymmetric cipher to use with rsa
 import hashlib  #simple hash for passwords
 import os   #to interact with the os e.g. check/make directories
 import sys
-from ecdsa import ecdsa, SigningKey, NIST384p
 
 def encrypt_file(username, user_hash):
     input_filename = input('Name of file to encrypt: ')
