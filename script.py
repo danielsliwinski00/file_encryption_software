@@ -4,6 +4,7 @@ from Crypto.Cipher import PKCS1_OAEP    #asymmetric cipher to use with rsa
 import hashlib  #simple hash for passwords
 import os   #to interact with the os e.g. check/make directories
 import sys
+from getpass import getpass
 
 def encrypt_file(username, user_hash):
     input_filename = input('Name of file to encrypt: ')
@@ -105,8 +106,8 @@ def logged(username, user_hash):   #logged in user inerface
 def signup():
     print('Sign up')
     username = input('Enter username: ')
-    password = input('Enter password: ')
-    confirm_password = input('Confirm password: ')
+    password = getpass('Enter password: ')
+    confirm_password = getpass('Confirm password: ')
 
     user_hash = hashlib.sha256(username.encode()).hexdigest()
     pubkey_hash = hashlib.sha224(username.encode()).hexdigest()
@@ -153,7 +154,7 @@ def signup():
 def login():
     print('Log in')
     username = input('Enter username: ')
-    password = input('Enter password: ')
+    password = getpass('Enter password: ')
 
     user_hash = hashlib.sha256(username.encode()).hexdigest()
 
