@@ -15,16 +15,16 @@ def encrypt_file(username, user_hash):
         encrypt_file(username, user_hash)
 
     elif decision == '1':
-        public_key = RSA.import_key(open(pubkey_hash+'publickey.pem').read())
-        cipher = PKCS1_OAEP.new(public_key)
+        public_key = RSA.import_key(open(pubkey_hash+'publickey.pem').read())   #public key import for encryption
+        cipher = PKCS1_OAEP.new(public_key)     #cipher created using import public key
 
         with open(input_filename, 'rb') as f:
-            data = f.read()
+            data = f.read()     #read data to encrypt
 
-        encrypted_data = cipher.encrypt(data)
+        encrypted_data = cipher.encrypt(data)   #encrypt data
         
         with open(input_filename+'.enc', 'wb') as f:
-            f.write(encrypted_data)
+            f.write(encrypted_data)     #write data to a .enc file
 
         logged(username, user_hash)
 
@@ -36,7 +36,7 @@ def decrypt_file(username, user_hash):
     input_filename = input('Name of file to decrypt: ')
     decision = input('Is '+input_filename+' the correct file name? 0 for no, 1 for yes: ')
 
-    name_chars = list(input_filename)
+    name_chars = list(input_filename)   #array of characters to later check for .enc file name extension
     final_name = input_filename
 
     chars_len = len(name_chars)
@@ -47,18 +47,18 @@ def decrypt_file(username, user_hash):
     elif decision == '1':
 
         if name_chars[chars_len-4] == '.' and name_chars[chars_len-3] == 'e' and name_chars[chars_len-2] == 'n' and name_chars[chars_len-1] == 'c': #checking for .enc filename
-            final_name = ''.join(str(x) for x in name_chars[:-4])
+            final_name = ''.join(str(x) for x in name_chars[:-4])   #remove .enc from filename
 
         private_key = RSA.import_key(open('./users/'+user_hash+'/'+'privkey.pem').read())
-        cipher = PKCS1_OAEP.new(private_key)
+        cipher = PKCS1_OAEP.new(private_key)    #cipher from private key
 
         with open(input_filename, 'rb') as f:
             data = f.read()
 
-        decrypted_data = cipher.decrypt(data)
+        decrypted_data = cipher.decrypt(data)   #decrypt data using the cipher
         
         with open(final_name+'.dec', 'wb') as f:
-            f.write(decrypted_data)
+            f.write(decrypted_data)     #write data to .dec file
 
         print('Decrypted!')
         logged(username, user_hash)
@@ -70,14 +70,14 @@ def new_keys(username, user_hash):  #for generating a new private key
 
     pubkey_hash = hashlib.sha224(username.encode()).hexdigest()
 
-    key = RSA.generate(2048)
+    key = RSA.generate(2048)    #generate new rsa keypair
     private_key = key.export_key()
-    file_out = open('./users/'+user_hash+'/'+'privkey.pem','wb')
+    file_out = open('./users/'+user_hash+'/'+'privkey.pem','wb')    #write private key to a file
     file_out.write(private_key)
     file_out.close()
 
     public_key = key.publickey().export_key()
-    file_out = open(pubkey_hash+'publickey.pem', 'wb')
+    file_out = open(pubkey_hash+'publickey.pem', 'wb')  #write public key to a file
     file_out.write(public_key)
     file_out.close()
 
@@ -109,22 +109,22 @@ def signup():
     password = getpass('Enter password: ')
     confirm_password = getpass('Confirm password: ')
 
-    user_hash = hashlib.sha256(username.encode()).hexdigest()
-    pubkey_hash = hashlib.sha224(username.encode()).hexdigest()
+    user_hash = hashlib.sha256(username.encode()).hexdigest()   #hash of user folder name
+    pubkey_hash = hashlib.sha224(username.encode()).hexdigest() #hash of public key name, using sha244 instead of 256 so its different
 
     if password == confirm_password:
         current_dir = os.getcwd()
         users_dir = os.path.join(current_dir, 'users')
         user_dir = os.path.join(users_dir, user_hash)
 
-        if not os.path.exists(user_dir):
-            os.makedirs(user_dir)
+        if not os.path.exists(user_dir):    #check if user directory exists
+            os.makedirs(user_dir)   #make user directory
 
         pre_salt = str(get_random_bytes(16))
         post_salt = str(get_random_bytes(16))
-        salted = pre_salt+password+post_salt
+        salted = pre_salt+password+post_salt    #salt the password
         enc = salted.encode()
-        hash_pass = hashlib.sha512(enc).hexdigest()
+        hash_pass = hashlib.sha512(enc).hexdigest() #hash the encoded salted password
 
         with open('./users/'+user_hash+'/'+'credentials.txt', 'w') as f:
             f.write(user_hash + '\n')
@@ -133,14 +133,14 @@ def signup():
             f.write(post_salt)
         f.close()
 
-        key = RSA.generate(2048)
+        key = RSA.generate(2048)    #generate rsa keypair
         private_key = key.export_key()
-        file_out = open('./users/'+user_hash+'/'+'privkey.pem','wb')
+        file_out = open('./users/'+user_hash+'/'+'privkey.pem','wb')    #write private key to a file
         file_out.write(private_key)
         file_out.close()
 
         public_key = key.publickey().export_key()
-        file_out = open(pubkey_hash+'publickey.pem', 'wb')
+        file_out = open(pubkey_hash+'publickey.pem', 'wb')  #write public key to a file
         file_out.write(public_key)
         file_out.close()
 
@@ -156,18 +156,18 @@ def login():
     username = input('Enter username: ')
     password = getpass('Enter password: ')
 
-    user_hash = hashlib.sha256(username.encode()).hexdigest()
+    user_hash = hashlib.sha256(username.encode()).hexdigest()   #grabbing username hash to check folder and credentials
 
     if os.path.exists('./users/'+user_hash+'/'):
         with open('./users/'+user_hash+'/'+'credentials.txt', 'r') as f:
-            stored_username, stored_password, pre_salt, post_salt = f.read().split('\n')
+            stored_username, stored_password, pre_salt, post_salt = f.read().split('\n')    #gathering credentials info
             salted = pre_salt + password + post_salt
             enc = salted.encode()
             auth_hash = hashlib.sha512(enc).hexdigest()
             
         f.close()
 
-        if user_hash == stored_username and auth_hash == stored_password:
+        if user_hash == stored_username and auth_hash == stored_password:   #if everything matches proceed with the login
             print('Logged in Successfully!')
             logged(username, user_hash)
         else:
@@ -178,10 +178,10 @@ def login():
 def main():
 
     current_dir = os.getcwd()
-    users_dir = os.path.join(current_dir, 'users')
+    users_dir = os.path.join(current_dir, 'users')  
 
     if not os.path.exists(users_dir):
-            os.makedirs(users_dir)
+            os.makedirs(users_dir)  #make user directory if it doesnt exist
 
     choice = input('0 for sign up, 1 for log in, 2 to exit: ')
     if choice == '0':
